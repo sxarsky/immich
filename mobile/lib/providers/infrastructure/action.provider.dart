@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,7 +20,6 @@ import 'package:immich_mobile/providers/server_info.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/providers/websocket.provider.dart';
-import 'package:immich_mobile/routing/router.dart';
 import 'package:immich_mobile/services/action.service.dart';
 import 'package:immich_mobile/services/download.service.dart';
 import 'package:immich_mobile/services/foreground_upload.service.dart';
@@ -135,16 +133,6 @@ class ActionNotifier extends Notifier<void> {
     };
   }
 
-  Future<ActionResult> troubleshoot(ActionSource source, BuildContext context) async {
-    final assets = _getAssets(source);
-    if (assets.length > 1) {
-      return ActionResult(count: assets.length, success: false, error: 'Cannot troubleshoot multiple assets');
-    }
-    unawaited(context.pushRoute(AssetTroubleshootRoute(asset: assets.first)));
-
-    return ActionResult(count: assets.length, success: true);
-  }
-
   Future<ActionResult> shareLink(ActionSource source, BuildContext context) async {
     final ids = _getRemoteIdsForSource(source);
     try {
@@ -152,29 +140,6 @@ class ActionNotifier extends Notifier<void> {
       return ActionResult(count: ids.length, success: true);
     } catch (error, stack) {
       _logger.severe('Failed to create shared link for assets', error, stack);
-      return ActionResult(count: ids.length, success: false, error: error.toString());
-    }
-  }
-
-  Future<ActionResult> moveToLockFolder(ActionSource source) async {
-    final ids = _getOwnedRemoteIdsForSource(source);
-    final localIds = _getLocalIdsForSource(source, ignoreLocalOnly: true);
-    try {
-      await _service.moveToLockFolder(ids, localIds);
-      return ActionResult(count: ids.length, success: true);
-    } catch (error, stack) {
-      _logger.severe('Failed to move assets to lock folder', error, stack);
-      return ActionResult(count: ids.length, success: false, error: error.toString());
-    }
-  }
-
-  Future<ActionResult> removeFromLockFolder(ActionSource source) async {
-    final ids = _getOwnedRemoteIdsForSource(source);
-    try {
-      await _service.removeFromLockFolder(ids);
-      return ActionResult(count: ids.length, success: true);
-    } catch (error, stack) {
-      _logger.severe('Failed to remove assets from lock folder', error, stack);
       return ActionResult(count: ids.length, success: false, error: error.toString());
     }
   }
@@ -428,35 +393,6 @@ class ActionNotifier extends Notifier<void> {
     } catch (error, stack) {
       _logger.severe('Failed to update rating for asset', error, stack);
       return ActionResult(count: 1, success: false, error: error.toString());
-    }
-  }
-
-  Future<ActionResult> stack(String userId, ActionSource source) async {
-    final ids = _getOwnedRemoteIdsForSource(source);
-    try {
-      await _service.stack(userId, ids);
-      return ActionResult(count: ids.length, success: true);
-    } catch (error, stack) {
-      _logger.severe('Failed to stack assets', error, stack);
-      return ActionResult(count: ids.length, success: false, error: error.toString());
-    }
-  }
-
-  Future<ActionResult> unStack(ActionSource source) async {
-    final assets = _getOwnedRemoteAssetsForSource(source);
-    try {
-      await _service.unStack(assets.map((e) => e.stackId).nonNulls.toList());
-      if (source == ActionSource.viewer) {
-        final updatedParent = await _assetService.getRemoteAsset(assets.first.id);
-        if (updatedParent != null) {
-          ref.read(assetViewerProvider.notifier).setAsset(updatedParent);
-        }
-      }
-
-      return ActionResult(count: assets.length, success: true);
-    } catch (error, stack) {
-      _logger.severe('Failed to unstack assets', error, stack);
-      return ActionResult(count: assets.length, success: false);
     }
   }
 
