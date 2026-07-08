@@ -61,6 +61,7 @@ class ServiceMocks {
   final user = UserServiceStub(MockUserService());
   final asset = AssetServiceStub(MockAssetService());
   final album = RemoteAlbumServiceStub(MockRemoteAlbumService());
+  final cleanup = CleanupServiceStub(MockCleanupService());
 
   ServiceMocks() {
     resetAll();
@@ -72,10 +73,12 @@ class ServiceMocks {
     user.reset();
     asset.reset();
     album.reset();
+    cleanup.reset();
     _stubUserService();
     _stubPartnerService();
     _stubAssetService();
     _stubRemoteAlbumService();
+    _stubCleanupService();
   }
 
   void _stubUserService() {
@@ -100,11 +103,17 @@ class ServiceMocks {
     when(asset.stack).thenAnswer((_) async {});
     when(asset.unstack).thenAnswer((_) async {});
     when(asset.restoreTrash).thenAnswer((_) async {});
+    when(asset.trash).thenAnswer((_) async {});
+    when(asset.delete).thenAnswer((_) async {});
   }
 
   void _stubRemoteAlbumService() {
     when(album.removeAssets).thenAnswer((_) async => 0);
     when(album.updateAlbum).thenAnswer((_) async => RemoteAlbumFactory.create());
+  }
+
+  void _stubCleanupService() {
+    when(cleanup.deleteLocalAssets).thenAnswer((_) async => 0);
   }
 }
 
@@ -199,6 +208,12 @@ extension type const AssetServiceStub(MockAssetService service) implements Stub<
 
   Future<void> Function() get restoreTrash =>
       () => service.restoreTrash(any());
+
+  Future<void> Function() get trash =>
+      () => service.trash(any());
+
+  Future<void> Function() get delete =>
+      () => service.delete(any());
 }
 
 extension type const RemoteAlbumServiceStub(MockRemoteAlbumService service) implements Stub<MockRemoteAlbumService> {
@@ -210,6 +225,11 @@ extension type const RemoteAlbumServiceStub(MockRemoteAlbumService service) impl
 
   Future<RemoteAlbum> Function() get updateAlbum =>
       () => service.updateAlbum(any(), thumbnailAssetId: any(named: 'thumbnailAssetId'));
+}
+
+extension type const CleanupServiceStub(MockCleanupService service) implements Stub<MockCleanupService> {
+  Future<int> Function() get deleteLocalAssets =>
+      () => service.deleteLocalAssets(any());
 }
 
 extension type const NativeSyncApiStub(MockNativeSyncApi api) implements Stub<MockNativeSyncApi> {
