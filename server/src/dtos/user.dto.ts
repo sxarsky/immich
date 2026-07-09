@@ -31,6 +31,7 @@ export const UserResponseSchema = z
     avatarColor: UserAvatarColorSchema,
     // TODO: use `isoDatetimeToDate` when using `ZodSerializerDto` on the controllers.
     profileChangedAt: z.string().meta({ format: 'date-time' }).describe('Profile change date'),
+    initials: z.string().describe('Uppercase initials derived from the user name'),
   })
   .meta({ id: 'UserResponseDto' });
 
@@ -55,6 +56,12 @@ const emailToAvatarColor = (email: string): UserAvatarColor => {
 };
 
 export const mapUser = (entity: MaybeDehydrated<User | UserAdmin>): UserResponseDto => {
+  const initials = (entity.name || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
   return {
     id: entity.id,
     email: entity.email,
@@ -62,6 +69,7 @@ export const mapUser = (entity: MaybeDehydrated<User | UserAdmin>): UserResponse
     profileImagePath: entity.profileImagePath,
     avatarColor: entity.avatarColor ?? emailToAvatarColor(entity.email),
     profileChangedAt: asDateTimeString(entity.profileChangedAt),
+    initials,
   };
 };
 
