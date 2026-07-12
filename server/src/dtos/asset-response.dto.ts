@@ -24,6 +24,7 @@ import z from 'zod';
 
 const SanitizedAssetResponseSchema = z
   .object({
+    ownerTeam: z.string().optional().describe('Optional owning team label for the asset'),
     id: z.string().describe('Asset ID'),
     type: AssetTypeSchema,
     thumbhash: z

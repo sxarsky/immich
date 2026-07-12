@@ -107,6 +107,7 @@ const ContributorCountResponseSchema = z
 
 export const AlbumResponseSchema = z
   .object({
+    ownerTeam: z.string().optional().describe('Optional owning team label for the album'),
     id: z.string().describe('Album ID'),
     albumName: z.string().describe('Album name'),
     description: z.string().describe('Album description'),

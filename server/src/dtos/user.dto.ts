@@ -24,6 +24,7 @@ export class UserUpdateMeDto extends createZodDto(UserUpdateMeSchema) {}
 
 export const UserResponseSchema = z
   .object({
+    ownerTeam: z.string().optional().describe('Optional owning team label for the user'),
     id: z.uuidv4().describe('User ID'),
     name: z.string().describe('User name'),
     email: toEmail.describe('User email'),
